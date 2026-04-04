@@ -1,5 +1,5 @@
-import { Link } from 'expo-router';
-import { useState } from 'react';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Alert, Button, StyleSheet, TextInput } from 'react-native';
 
 import { DownloadRecordCard } from '@/components/download-record-card';
@@ -12,7 +12,9 @@ import { Image } from 'expo-image';
 
 export default function DownloadScreen() {
   const [text, setText] = useState('');
-  const { value: token, loading: tokenLoading } = useSecureString('apifyToken');
+  const { value: token, loading: tokenLoading, reload: reloadToken } = useSecureString('apifyToken');
+
+  useFocusEffect(useCallback(() => { void reloadToken(); }, [reloadToken]));
   const { records, submitting, errorMessage, activeRecordCount, submitLinks } = useDownloadHistory(token);
 
   const startDownload = async () => {

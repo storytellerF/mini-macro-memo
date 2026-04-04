@@ -1,32 +1,23 @@
 import * as SecureStore from 'expo-secure-store';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export function useSecureString(key: string, defaultValue = '') {
   const [value, setValue] = useState(defaultValue);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const load = async () => {
-      try {
-        const stored = await SecureStore.getItemAsync(key);
-        if (isMounted) {
-          setValue(stored ?? defaultValue);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      isMounted = false;
-    };
+  const reload = useCallback(async () => {
+    setLoading(true);
+    try {
+      const stored = await SecureStore.getItemAsync(key);
+      setValue(stored ?? defaultValue);
+    } finally {
+      setLoading(false);
+    }
   }, [defaultValue, key]);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
   const saveValue = async (nextValue: string) => {
     await SecureStore.setItemAsync(key, nextValue);
@@ -41,6 +32,7 @@ export function useSecureString(key: string, defaultValue = '') {
   return {
     value,
     loading,
+    reload,
     saveValue,
     clearValue,
   };

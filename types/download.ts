@@ -32,6 +32,7 @@ export type DownloadRecord = {
   hasImages: boolean;
   hasVideos: boolean;
   assets: DownloadAsset[];
+  authorNicknames?: string[];
   errorMessage?: string;
 };
 

@@ -400,6 +400,12 @@ function mergeCompletedRecord(record: DownloadRecord, datasetItems: unknown[]) {
     hasImages: assets.some(asset => asset.kind === 'image'),
     hasVideos: assets.some(asset => asset.kind === 'video'),
     assets,
+    authorNicknames: [...new Set(
+      datasetItems
+        .map(item => (item as RawDatasetItem).result?.author)
+        .filter((a): a is string => typeof a === 'string' && a.trim().length > 0)
+        .map(a => a.trim())
+    )],
     updatedAt: new Date().toISOString(),
     finishedAt,
     errorMessage: structuredErrorMessage,
