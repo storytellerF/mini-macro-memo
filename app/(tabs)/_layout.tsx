@@ -27,7 +27,7 @@ export default function TabLayout() {
         name="explore"
         options={{
           title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="banknote.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -41,7 +41,7 @@ export default function TabLayout() {
         name="download"
         options={{
           title: 'Download',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="filemenu.and.cursorarrow" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="tray.and.arrow.down.fill" color={color} />,
         }}
       />
     </Tabs>

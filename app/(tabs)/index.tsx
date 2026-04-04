@@ -1,13 +1,29 @@
+import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Alert, Button, StyleSheet } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
+import { DownloadRecordCard } from '@/components/download-record-card';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useDownloadHistory } from '@/hooks/use-download-history';
+import { useSecureString } from '@/hooks/use-secure-string';
 
 export default function HomeScreen() {
+  const { value: token } = useSecureString('apifyToken');
+  const { records, loading, refreshing, errorMessage, refreshPending, exportResult, activeRecordCount, isPolling } =
+    useDownloadHistory(token);
+
+  const exportAll = async () => {
+    if (!exportResult.text) {
+      Alert.alert('Nothing to export', 'No image or video URLs are available yet.');
+      return;
+    }
+
+    await Clipboard.setStringAsync(exportResult.text);
+    Alert.alert('Copied', `${exportResult.count} deduplicated media URL(s) copied to the clipboard.`);
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -18,62 +34,38 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+        <ThemedText type="title">Download History</ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.summaryCard}>
+        <ThemedText>All async download runs are listed here.</ThemedText>
+        <ThemedText>Records: {records.length}</ThemedText>
+        <ThemedText>Active runs: {activeRecordCount}</ThemedText>
+        <ThemedText>Exportable assets: {exportResult.count}</ThemedText>
+        <ThemedView style={styles.buttonRow}>
+          <ThemedView style={styles.buttonItem}>
+            <Button onPress={() => void refreshPending()} title={refreshing ? 'Refreshing...' : 'Refresh status'} />
+          </ThemedView>
+          <ThemedView style={styles.buttonItem}>
+            <Button onPress={() => void exportAll()} title="Copy all media URLs" />
+          </ThemedView>
+        </ThemedView>
+        {errorMessage ? <ThemedText style={styles.errorText}>{errorMessage}</ThemedText> : null}
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
+        <ThemedText type="subtitle">All records</ThemedText>
+        {loading ? <ThemedText>Loading history...</ThemedText> : null}
+        {!loading && records.length === 0 ? (
+          <ThemedText>No download history yet. Start a run from the Download tab.</ThemedText>
+        ) : null}
+        {records.map(record => (
+          <DownloadRecordCard key={record.id} record={record} />
+        ))}
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
-
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
+      {isPolling ? (
+        <ThemedView pointerEvents="none" style={styles.pollingToast}>
+          <ThemedText style={styles.pollingToastText}>Refreshing run status in background...</ThemedText>
+        </ThemedView>
+      ) : null}
     </ParallaxScrollView>
   );
 }
@@ -88,11 +80,43 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
+  summaryCard: {
+    gap: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#d0d7de',
+    padding: 16,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  buttonItem: {
+    flexGrow: 1,
+    minWidth: 160,
+  },
+  errorText: {
+    color: '#b42318',
+  },
   reactLogo: {
     height: 178,
     width: 290,
     bottom: 0,
     left: 0,
     position: 'absolute',
+  },
+  pollingToast: {
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
+    borderRadius: 999,
+    backgroundColor: 'rgba(17, 24, 39, 0.9)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  pollingToastText: {
+    color: '#f9fafb',
+    fontSize: 12,
   },
 });
