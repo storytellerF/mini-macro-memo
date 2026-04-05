@@ -16,6 +16,11 @@ services:
       - VNC_PASSWD=${VNC_PASSWD}
       - VNC_GEOMETRY=1920x1080
       - VNC_DEPTH=24
+      - com.storyteller_f.sign_path=${COM_STORYTELLER_F_SIGN_PATH}
+      - com.storyteller_f.sign_key=${COM_STORYTELLER_F_SIGN_KEY}
+      - com.storyteller_f.sign_alias=${COM_STORYTELLER_F_SIGN_ALIAS}
+      - com.storyteller_f.sign_store_password=${COM_STORYTELLER_F_SIGN_STORE_PASSWORD}
+      - com.storyteller_f.sign_key_password=${COM_STORYTELLER_F_SIGN_KEY_PASSWORD}
     volumes:
       - ..:/workspace/mini-macro-memo:cached
       - ./logs:${CONTAINER_HOME:-/home/debian}/log/supervisor

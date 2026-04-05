@@ -36,8 +36,13 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Build release APK
-        run: npx expo prebuild && cd android && ./gradlew assembleDebug
-        # env:
+        run: npx expo prebuild && cd android && ./gradlew assembleRelease
+        env:
+          com.storyteller_f.sign_path: ${{ secrets.COM_STORYTELLER_F_SIGN_PATH }}
+          com.storyteller_f.sign_key: ${{ secrets.COM_STORYTELLER_F_SIGN_KEY }}
+          com.storyteller_f.sign_alias: ${{ secrets.COM_STORYTELLER_F_SIGN_ALIAS }}
+          com.storyteller_f.sign_store_password: ${{ secrets.COM_STORYTELLER_F_SIGN_STORE_PASSWORD }}
+          com.storyteller_f.sign_key_password: ${{ secrets.COM_STORYTELLER_F_SIGN_KEY_PASSWORD }}
           # GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m"
 
       - name: Upload APK artifact
