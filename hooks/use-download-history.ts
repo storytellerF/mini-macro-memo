@@ -2,12 +2,12 @@ import { useIsFocused } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
 
 import {
-    buildExportResult,
-    createDownloadRecord,
-    getActiveRecordCount,
-    getDownloadRecords,
-    parseLinks,
-    refreshPendingRecords,
+  buildExportResult,
+  createDownloadRecord,
+  getActiveRecordCount,
+  getDownloadRecords,
+  parseLinks,
+  refreshPendingRecords,
 } from '@/services/download-history-service';
 import type { DownloadRecord } from '@/types/download';
 
@@ -77,7 +77,7 @@ export function useDownloadHistory(token: string) {
 
     const links = parseLinks(rawInput);
     if (links.length === 0) {
-      throw new Error('Paste at least one valid Xiaohongshu URL.');
+      throw new Error('Paste at least one valid URL (Douyin or Xiaohongshu).');
     }
 
     setSubmitting(true);

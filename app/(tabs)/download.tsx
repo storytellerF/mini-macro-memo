@@ -40,14 +40,14 @@ export default function DownloadScreen() {
       <ThemedView style={styles.panel}>
         <ThemedText type="title">Download</ThemedText>
         <ThemedText>
-          Paste one or more Xiaohongshu URLs. Each whitespace-separated URL will be sent in one Apify async run.
+          Paste one or more Douyin or Xiaohongshu URLs. URLs are grouped by platform, and each group is sent to the respective Apify actor.
         </ThemedText>
         <TextInput
           editable={!tokenLoading && !submitting}
           multiline
           numberOfLines={6}
           onChangeText={setText}
-          placeholder="https://www.xiaohongshu.com/explore/..."
+          placeholder="https://www.xiaohongshu.com/explore/... or https://www.douyin.com/video/..."
           style={styles.textArea}
           value={text}
         />

@@ -1,7 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { createDownloadRun, getDatasetItems, getRun, mapApifyStatus } from '@/services/apify-service';
-import type { DownloadAsset, DownloadRecord, DownloadStatus, ExportResult } from '@/types/download';
+import { getDatasetItems, getRun, mapApifyStatus, submitDownloadJob } from '@/services/apify-service';
+import type { DownloadAsset, DownloadRecord, DownloadStatus, ExportResult, Platform } from '@/types/download';
+
+export type GroupedLinks = {
+  douyin: string[];
+  xiaohongshu: string[];
+};
 
 const STORAGE_KEY = 'downloadHistoryRecords';
 const ACTIVE_STATUSES: DownloadStatus[] = ['queued', 'running'];
@@ -357,18 +362,68 @@ export async function getDownloadRecords() {
 }
 
 export async function createDownloadRecord(token: string, links: string[]) {
-  const run = await createDownloadRun(token, links);
+  // Group links by platform
+  const grouped = groupLinksByPlatform(links);
+  const platforms: Platform[] = [];
+  const platformRuns: Record<Platform, { runId: string; datasetId?: string }> = {
+    douyin: { runId: '', datasetId: undefined },
+    xiaohongshu: { runId: '', datasetId: undefined },
+  };
+
+  // Collect all submission promises
+  const submissionPromises: Promise<{ platform: Platform; run: any }>[] = [];
+
+  if (grouped.douyin.length > 0) {
+    platforms.push('douyin');
+    submissionPromises.push(
+      submitDownloadJob(token, grouped.douyin, 'douyin').then(run => ({
+        platform: 'douyin',
+        run,
+      }))
+    );
+  }
+
+  if (grouped.xiaohongshu.length > 0) {
+    platforms.push('xiaohongshu');
+    submissionPromises.push(
+      submitDownloadJob(token, grouped.xiaohongshu, 'xiaohongshu').then(run => ({
+        platform: 'xiaohongshu',
+        run,
+      }))
+    );
+  }
+
+  if (submissionPromises.length === 0) {
+    throw new Error('No valid links to submit.');
+  }
+
+  // Submit all platforms concurrently
+  const results = await Promise.all(submissionPromises);
+
+  // Store run info for each platform
+  for (const result of results) {
+    platformRuns[result.platform] = {
+      runId: result.run.id,
+      datasetId: result.run.defaultDatasetId,
+    };
+  }
+
+  // For backward compatibility, use the first run's info in the main fields
+  const firstRun = results[0];
+
   const now = new Date().toISOString();
   const record: DownloadRecord = {
     id: createId(),
     submittedLinks: links,
-    status: mapApifyStatus(run.status),
-    apifyRunId: run.id,
-    apifyDatasetId: run.defaultDatasetId,
-    apifyStatus: run.status,
+    status: mapApifyStatus(firstRun.run.status),
+    apifyRunId: firstRun.run.id,
+    apifyDatasetId: firstRun.run.defaultDatasetId,
+    apifyStatus: firstRun.run.status,
+    platforms,
+    platformRuns,
     createdAt: now,
-    startedAt: run.startedAt ?? now,
-    finishedAt: run.finishedAt,
+    startedAt: firstRun.run.startedAt ?? now,
+    finishedAt: firstRun.run.finishedAt,
     updatedAt: now,
     hasImages: false,
     hasVideos: false,
@@ -413,26 +468,87 @@ function mergeCompletedRecord(record: DownloadRecord, datasetItems: unknown[]) {
 }
 
 async function refreshRecord(record: DownloadRecord, token: string) {
-  if (!record.apifyRunId || !ACTIVE_STATUSES.includes(record.status)) {
+  // For backward compatibility, check if this is a single-platform record
+  if (!record.platformRuns || (record.apifyRunId && !record.platforms)) {
+    // Old-style single run record
+    if (!record.apifyRunId || !ACTIVE_STATUSES.includes(record.status)) {
+      return record;
+    }
+
+    const run = await getRun(token, record.apifyRunId);
+    const nextStatus = mapApifyStatus(run.status);
+    const baseRecord: DownloadRecord = {
+      ...record,
+      status: nextStatus,
+      apifyStatus: run.status,
+      apifyDatasetId: run.defaultDatasetId ?? record.apifyDatasetId,
+      startedAt: run.startedAt ?? record.startedAt,
+      finishedAt: run.finishedAt ?? record.finishedAt,
+      updatedAt: new Date().toISOString(),
+      errorMessage: nextStatus === 'failed' ? record.errorMessage ?? 'Apify run failed.' : undefined,
+    };
+
+    if (nextStatus === 'succeeded' && baseRecord.apifyDatasetId) {
+      const datasetItems = await getDatasetItems(token, baseRecord.apifyDatasetId);
+      return mergeCompletedRecord(baseRecord, datasetItems);
+    }
+
+    return baseRecord;
+  }
+
+  // New-style multi-platform record
+  if (!ACTIVE_STATUSES.includes(record.status) || !record.platformRuns) {
     return record;
   }
 
-  const run = await getRun(token, record.apifyRunId);
-  const nextStatus = mapApifyStatus(run.status);
+  // Poll status for all platforms concurrently
+  const statusPromises = (record.platforms || []).map(async platform => {
+    const platformRun = record.platformRuns?.[platform];
+    if (!platformRun?.runId) {
+      return { platform, status: 'unknown', run: null };
+    }
+
+    try {
+      const run = await getRun(token, platformRun.runId);
+      return { platform, status: mapApifyStatus(run.status), run };
+    } catch {
+      return { platform, status: 'failed' as const, run: null };
+    }
+  });
+
+  const statusResults = await Promise.all(statusPromises);
+
+  // Determine overall status: succeeded only if all platforms succeeded
+  const allSucceeded = statusResults.every(r => r.status === 'succeeded');
+  const anyFailed = statusResults.some(r => r.status === 'failed');
+  const nextStatus: DownloadStatus = allSucceeded ? 'succeeded' : anyFailed ? 'failed' : 'running';
+
   const baseRecord: DownloadRecord = {
     ...record,
     status: nextStatus,
-    apifyStatus: run.status,
-    apifyDatasetId: run.defaultDatasetId ?? record.apifyDatasetId,
-    startedAt: run.startedAt ?? record.startedAt,
-    finishedAt: run.finishedAt ?? record.finishedAt,
     updatedAt: new Date().toISOString(),
-    errorMessage: nextStatus === 'failed' ? record.errorMessage ?? 'Apify run failed.' : undefined,
+    errorMessage: nextStatus === 'failed' && !record.errorMessage ? 'One or more Apify runs failed.' : record.errorMessage,
   };
 
-  if (nextStatus === 'succeeded' && baseRecord.apifyDatasetId) {
-    const datasetItems = await getDatasetItems(token, baseRecord.apifyDatasetId);
-    return mergeCompletedRecord(baseRecord, datasetItems);
+  // If succeeded, fetch results from all platforms concurrently
+  if (nextStatus === 'succeeded') {
+    const datasetPromises = (record.platforms || [])
+      .map(platform => {
+        const platformRun = record.platformRuns?.[platform];
+        if (!platformRun?.datasetId) {
+          return Promise.resolve({ platform, items: [] as any[] });
+        }
+        return getDatasetItems(token, platformRun.datasetId).then(items => ({
+          platform,
+          items,
+        }));
+      });
+
+    const datasetResults = await Promise.all(datasetPromises);
+
+    // Merge results from all platforms
+    const allDatasetItems = datasetResults.flatMap(r => r.items);
+    return mergeCompletedRecord(baseRecord, allDatasetItems);
   }
 
   return baseRecord;
@@ -442,6 +558,38 @@ export async function refreshPendingRecords(records: DownloadRecord[], token: st
   const refreshed = await Promise.all(records.map(record => refreshRecord(record, token)));
   await persist(refreshed);
   return sortRecords(refreshed);
+}
+
+function detectPlatform(url: string): Platform {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.toLowerCase();
+    
+    if (hostname.includes('douyin.com')) {
+      return 'douyin';
+    }
+    
+    if (hostname.includes('xiaohongshu.com')) {
+      return 'xiaohongshu';
+    }
+    
+    // Default to xiaohongshu for backward compatibility
+    return 'xiaohongshu';
+  } catch {
+    // Default to xiaohongshu if URL parsing fails
+    return 'xiaohongshu';
+  }
+}
+
+function groupLinksByPlatform(links: string[]): GroupedLinks {
+  return links.reduce(
+    (acc, link) => {
+      const platform = detectPlatform(link);
+      acc[platform].push(link);
+      return acc;
+    },
+    { douyin: [] as string[], xiaohongshu: [] as string[] }
+  );
 }
 
 export function parseLinks(rawInput: string) {

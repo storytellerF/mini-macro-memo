@@ -1,5 +1,7 @@
 export type DownloadStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'aborted';
 
+export type Platform = 'douyin' | 'xiaohongshu';
+
 export type AssetKind = 'image' | 'video';
 
 export type DownloadAsset = {
@@ -25,6 +27,8 @@ export type DownloadRecord = {
   apifyRunId?: string;
   apifyDatasetId?: string;
   apifyStatus?: string;
+  platforms?: Platform[];  // Platforms submitted (douyin, xiaohongshu, or both)
+  platformRuns?: Record<Platform, { runId: string; datasetId?: string }>; // Track runs per platform
   createdAt: string;
   startedAt?: string;
   finishedAt?: string;

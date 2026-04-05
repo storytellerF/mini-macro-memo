@@ -1,7 +1,10 @@
-import type { ApifyRun, CreateRunResponse, DownloadStatus } from '@/types/download';
+import type { ApifyRun, CreateRunResponse, DownloadStatus, Platform } from '@/types/download';
 
 const APIFY_BASE_URL = 'https://api.apify.com/v2';
-const ACTOR_PATH = 'easyapi~rednote-xiaohongshu-video-downloader';
+const ACTOR_PATHS: Record<Platform, string> = {
+  xiaohongshu: 'easyapi~rednote-xiaohongshu-video-downloader',
+  douyin: 'easyapi~douyin-video-downloader',
+};
 
 type RequestOptions = {
   method?: 'GET' | 'POST';
@@ -126,6 +129,20 @@ export async function createDownloadRun(token: string, links: string[]) {
     throw new Error('Missing Apify token. Configure it in Settings before downloading.');
   }
 
+  // Default to xiaohongshu for backward compatibility
+  return submitDownloadJob(token, links, 'xiaohongshu');
+}
+
+export async function submitDownloadJob(token: string, links: string[], platform: Platform) {
+  if (!token.trim()) {
+    throw new Error('Missing Apify token. Configure it in Settings before downloading.');
+  }
+
+  if (links.length === 0) {
+    throw new Error('No links to submit.');
+  }
+
+  const actorPath = ACTOR_PATHS[platform];
   const payload = {
     links,
     proxyConfiguration: {
@@ -135,7 +152,7 @@ export async function createDownloadRun(token: string, links: string[]) {
   };
 
   const response = await requestJson<CreateRunResponse>(
-    `/acts/${ACTOR_PATH}/runs`,
+    `/acts/${actorPath}/runs`,
     {
       method: 'POST',
       token,
