@@ -35,13 +35,10 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Make gradlew executable
-        run: chmod +x android/gradlew
-
       - name: Build release APK
-        run: cd android && ./gradlew assembleRelease --no-daemon
-        env:
-          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m"
+        run: npx expo prebuild && cd android && ./gradlew assembleDebug
+        # env:
+          # GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
