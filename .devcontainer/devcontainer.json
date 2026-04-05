@@ -1,0 +1,15 @@
+{
+	"name": "mini-macro-memo Dev Container",
+	"dockerComposeFile": [
+		"./docker-compose.yml"
+	],
+	"service": "main",
+	"workspaceFolder": "/workspace/mini-macro-memo",
+	"shutdownAction": "stopCompose",
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"moby": false
+		}
+	},
+	"remoteUser": "debian"
+}
