@@ -1,5 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import { Alert, Button, StyleSheet } from 'react-native';
 
 import { DownloadRecordCard } from '@/components/download-record-card';
@@ -13,6 +14,7 @@ export default function HomeScreen() {
   const { value: token } = useSecureString('apifyToken');
   const { records, loading, refreshing, errorMessage, refreshPending, exportResult, activeRecordCount, isPolling } =
     useDownloadHistory(token);
+  const router = useRouter();
 
   const exportAll = async () => {
     if (!exportResult.text) {
@@ -58,7 +60,11 @@ export default function HomeScreen() {
           <ThemedText>No download history yet. Start a run from the Download tab.</ThemedText>
         ) : null}
         {records.map(record => (
-          <DownloadRecordCard key={record.id} record={record} />
+          <DownloadRecordCard
+            key={record.id}
+            record={record}
+            onPress={() => router.push(`/record/${record.id}`)}
+          />
         ))}
       </ThemedView>
       {isPolling ? (

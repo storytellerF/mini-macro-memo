@@ -6,25 +6,14 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { getStatusLabel } from '@/services/download-history-service';
 import type { DownloadRecord } from '@/types/download';
+import { formatDateTime } from '@/utils/format';
 
 type DownloadRecordCardProps = {
     record: DownloadRecord;
+    onPress?: () => void;
 };
 
-function formatDateTime(value?: string) {
-    if (!value) {
-        return '-';
-    }
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return date.toLocaleString();
-}
-
-export function DownloadRecordCard({ record }: DownloadRecordCardProps) {
+export function DownloadRecordCard({ record, onPress }: DownloadRecordCardProps) {
     const countableAssets = record.assets.filter(asset => asset.qualityLabel?.toLowerCase() !== 'thumbnail');
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [copiedAll, setCopiedAll] = useState(false);
@@ -44,10 +33,14 @@ export function DownloadRecordCard({ record }: DownloadRecordCardProps) {
 
     return (
         <ThemedView style={styles.card}>
-            <ThemedView style={styles.headerRow}>
+            <Pressable
+                onPress={onPress}
+                style={({ pressed }) => [styles.headerRow, onPress && pressed && styles.headerRowPressed]}
+                disabled={!onPress}
+            >
                 <ThemedText type="defaultSemiBold">{getStatusLabel(record.status)}</ThemedText>
                 <ThemedText style={styles.timestamp}>{formatDateTime(record.updatedAt)}</ThemedText>
-            </ThemedView>
+            </Pressable>
 
             <ThemedText type="subtitle" style={styles.sectionTitle}>
                 Links
@@ -146,6 +139,9 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         gap: 12,
+    },
+    headerRowPressed: {
+        opacity: 0.5,
     },
     timestamp: {
         fontSize: 12,
