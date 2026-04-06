@@ -35,6 +35,11 @@ export default function RecordDetailScreen() {
                 if (isMounted) {
                     setRecord(found);
                 }
+            } catch {
+                if (isMounted) {
+                    setRecord(null);
+                    Alert.alert('Failed to load record', 'Please try again later.');
+                }
             } finally {
                 if (isMounted) {
                     setLoading(false);
