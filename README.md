@@ -2,6 +2,13 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+## Android releases
+
+Pushing a tag builds the Android release APK and uploads it to the matching GitHub Release.
+The upload runs in a separate job, creates the release only if missing, and replaces same-named assets on reruns.
+Branch and pull-request builds remain available as Actions artifacts. Signing uses the existing
+`COM_STORYTELLER_F_SIGN_*` secrets consumed by the Expo signing plugin.
+
 ## Get started
 
 1. Install dependencies
