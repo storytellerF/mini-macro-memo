@@ -1,4 +1,4 @@
-FROM node:20 AS builder
+FROM node:25 AS builder
 WORKDIR /app
 COPY package.json package-lock.json* yarn.lock* ./
 RUN npm install --frozen-lockfile || yarn install --frozen-lockfile
