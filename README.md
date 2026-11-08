@@ -1,57 +1,66 @@
-# Welcome to your Expo app 👋
+<a id="welcome-to-your-expo-app-"></a>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# 欢迎使用你的 Expo 应用 👋
 
-## Android releases
+这是使用 [`create-expo-app`](https://www.npmjs.com/package/create-expo-app) 创建的 [Expo](https://expo.dev) 项目。
 
-Pushing a tag builds the Android release APK and uploads it to the matching GitHub Release.
-The upload runs in a separate job, creates the release only if missing, and replaces same-named assets on reruns.
-Branch and pull-request builds remain available as Actions artifacts. Signing uses the existing
-`COM_STORYTELLER_F_SIGN_*` secrets consumed by the Expo signing plugin.
+<a id="android-releases"></a>
 
-## Get started
+## Android 版本发布
 
-1. Install dependencies
+推送 tag 会构建 Android release APK，并上传到对应的 GitHub Release。上传在单独的作业中执行，只在 Release 不存在时创建；重新运行时替换同名附件。分支和 pull request 的构建产物仍可通过 Actions artifacts 获取。签名使用已有的 `COM_STORYTELLER_F_SIGN_*` secrets，由 Expo 签名插件读取。
 
-   ```bash
+<a id="get-started"></a>
+
+## 开始使用
+
+1. 安装依赖
+
+```bash
    npm install
    ```
 
-2. Start the app
+2. 启动应用
 
-   ```bash
+```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+命令输出会提供以下打开应用的选项：
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- [开发构建](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android 模拟器](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS 模拟器](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go)：用于尝试 Expo 应用开发、功能有限的沙盒环境
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+可以通过编辑 **app** 目录中的文件开始开发。本项目使用[基于文件的路由](https://docs.expo.dev/router/introduction)。
 
-## Get a fresh project
+<a id="get-a-fresh-project"></a>
 
-When you're ready, run:
+## 重置为全新项目
+
+准备好后，运行：
 
 ```bash
 npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+该命令将初始示例代码移动到 **app-example** 目录，并创建空白的 **app** 目录，供你开始开发。
 
-## Learn more
+<a id="learn-more"></a>
 
-To learn more about developing your project with Expo, look at the following resources:
+## 了解更多
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+以下资源可以帮助你进一步了解 Expo 项目开发：
 
-## Join the community
+- [Expo 文档](https://docs.expo.dev/)：学习基础知识，或通过[指南](https://docs.expo.dev/guides)了解进阶主题。
+- [Learn Expo 教程](https://docs.expo.dev/tutorial/introduction/)：按步骤创建可在 Android、iOS 和 Web 上运行的项目。
 
-Join our community of developers creating universal apps.
+<a id="join-the-community"></a>
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 加入社区
+
+加入构建跨平台应用的开发者社区。
+
+- [GitHub 上的 Expo](https://github.com/expo/expo)：查看开源平台并参与贡献。
+- [Discord 社区](https://chat.expo.dev)：与 Expo 用户交流和提问。
