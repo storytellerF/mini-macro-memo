@@ -1,8 +1,4 @@
-<a id="development"></a>
-
 # 开发指南
-
-<a id="sdk-and-build-requirements"></a>
 
 ## SDK 与构建要求
 
@@ -27,15 +23,11 @@ Windows 上最后一条命令使用 `gradlew.bat`。原生编译需要本地 And
 
 SDK 58 Router 组件使用 `expo-router/tabs` 和 `expo-router/react-navigation` 导出的导航类型与基础组件。Router 自定义标签按钮应使用这些导出，确保类型与 Router 内置导航组件匹配。
 
-<a id="android-ci-cache"></a>
-
 ## Android CI 缓存
 
 Android 工作流使用 `gradle/actions/setup-gradle` 缓存 Gradle User Home，包括 Wrapper 分发包和下载的依赖。只有 `main` 写入缓存；pull request、tag 和其他分支只读恢复。Gradle 版本仍由 `npx expo prebuild` 生成的 Wrapper 决定。生成的 Android 项目和签名文件不包含在此缓存中。
 
 验证变更时，先在 `main` 运行工作流填充缓存，再打开 pull request，查看 setup-gradle 恢复日志和作业摘要。两次运行都必须从干净检出完成 prebuild、`assembleRelease` 和 APK artifact 上传。比较构建耗时和缓存传输大小；仅命中缓存不能证明提速。更改 Expo 依赖或生成的 Wrapper 版本后，确认构建正确解析所需版本。tag 构建继续使用已有的独立 GitHub Release 上传作业。
-
-<a id="dependency-updates"></a>
 
 ## 依赖更新
 
