@@ -4,7 +4,7 @@
 
 ## Android 版本发布
 
-推送 tag 会构建 Android release APK，并上传到对应的 GitHub Release。上传在单独的作业中执行，只在 Release 不存在时创建；重新运行时替换同名附件。分支和 pull request 的构建产物仍可通过 Actions artifacts 获取。签名使用已有的 `COM_STORYTELLER_F_SIGN_*` secrets，由 Expo 签名插件读取。
+发布 GitHub Release（包括预发布）会基于关联的 tag 构建 Android release APK，并上传到该 Release。上传在单独的作业中执行，重新运行时替换同名附件；仅推送 tag 不会触发发布。分支和 pull request 的构建产物仍可通过 Actions artifacts 获取。签名使用已有的 `COM_STORYTELLER_F_SIGN_*` secrets，由 Expo 签名插件读取。
 
 ## 开始使用
 
